@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 
-src = "M:\\Dropbox\\Sandbox\\FileRename\\SampleImages\\Original"
+src = os.path.dirname(os.path.realpath(__file__)) + '\\' + 'SampleImages'
 productID = input('Enter Product ID:')
 
 log_path = src + '\\FileRename_LOG.csv'
