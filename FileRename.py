@@ -3,6 +3,7 @@ import win32con
 import win32event
 import win32file
 import time
+import threading
 from datetime import datetime
 
 path_to_watch = 'M:\\Dropbox\\Sandbox\\FileRename\\SampleImages'
@@ -29,7 +30,7 @@ def log(old_file, new_file):  # Create log file
 
 
 def rename(file, loop_count):
-    time.sleep(1)
+    # time.sleep(1)
     for file_name in file:
         old_file = path_to_watch + '\\' + file_name
         new_file = (path_to_watch + '\\'
@@ -39,8 +40,11 @@ def rename(file, loop_count):
                     + str(os.path.splitext(file_name)[1]))  # File extention
 
         if old_file != log_path:  # Ignore log file
-            log(old_file, new_file)
-            os.rename(old_file, new_file)
+            if not os.path.isfile(new_file):
+                log(old_file, new_file)
+                os.rename(old_file, new_file)
+            else:
+                loop_count += 1
 
 
 change_handle = win32file.FindFirstChangeNotification(
@@ -57,7 +61,6 @@ try:
             new_path_contents = dict ([(f, None) for f in os.listdir (path_to_watch)])
             added = [f for f in new_path_contents if not f in old_path_contents]
             deleted = [f for f in old_path_contents if not f in new_path_contents]
-            print(added)
             if added:
                 rename(added, loop_count)
                 loop_count += 1
