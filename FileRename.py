@@ -1,10 +1,16 @@
 import os
+import win32con
+import win32event
+import win32file
+import time
 from datetime import datetime
 
-src = os.path.dirname(os.path.realpath(__file__)) + '\\' + 'SampleImages'
-productID = input('Enter Product ID:')
+path_to_watch = 'M:\\Dropbox\\Sandbox\\FileRename\\SampleImages'
+product_id = input('Enter Product ID:')
+global loop_count
+loop_count = 1
 
-log_path = src + '\\FileRename_LOG.csv'
+log_path = path_to_watch + '\\FileRename_LOG.csv'
 delim = '_'
 
 def log(old_file, new_file):  # Create log file
@@ -22,23 +28,44 @@ def log(old_file, new_file):  # Create log file
         log_file.close()
 
 
-def rename():
-    files = os.listdir(src)
-    i = 1
-
-    for file_name in files:
-        old_file = src + '\\' + file_name
-        new_file = (src + '\\'
-                    + productID
+def rename(file, loop_count):
+    time.sleep(1)
+    for file_name in file:
+        old_file = path_to_watch + '\\' + file_name
+        new_file = (path_to_watch + '\\'
+                    + product_id
                     + delim
-                    + str(i)
+                    + str(loop_count)
                     + str(os.path.splitext(file_name)[1]))  # File extention
 
         if old_file != log_path:  # Ignore log file
             log(old_file, new_file)
             os.rename(old_file, new_file)
-            i += 1
 
 
-if __name__ == '__main__':
-    rename()
+change_handle = win32file.FindFirstChangeNotification(
+    path_to_watch,
+    0,
+    win32con.FILE_NOTIFY_CHANGE_FILE_NAME
+)
+
+try:  
+    old_path_contents = dict ([(f, None) for f in os.listdir (path_to_watch)])
+    while 1:
+        result = win32event.WaitForSingleObject (change_handle, 500)  
+        if result == win32con.WAIT_OBJECT_0:
+            new_path_contents = dict ([(f, None) for f in os.listdir (path_to_watch)])
+            added = [f for f in new_path_contents if not f in old_path_contents]
+            deleted = [f for f in old_path_contents if not f in new_path_contents]
+            print(added)
+            if added:
+                rename(added, loop_count)
+                loop_count += 1
+            
+            new_path_contents = dict ([(f, None) for f in os.listdir (path_to_watch)])
+            old_path_contents = new_path_contents
+            win32file.FindNextChangeNotification(change_handle)
+            # print('1')
+
+finally:
+    win32file.FindCloseChangeNotification (change_handle)
