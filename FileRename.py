@@ -6,7 +6,7 @@ import win32file
 from datetime import datetime
 
 # Set Variables
-path_to_watch = 'M:\\Dropbox\\Sandbox\\FileRename\\SampleImages'
+path_to_watch = 'M:\Lightroom\Betzalel Goupen\Ambitec\Auto Import'
 log_path = path_to_watch + '\\FileRename_LOG.csv'
 delim = '_'
 
